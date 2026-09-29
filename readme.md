@@ -1,96 +1,103 @@
 # Chainlit Universal Chat (PostgreSQL + Pluggable LLM) 🚀
 
-Um template completo e pronto para produção para executar um chat com LLM com persistência total do histórico de conversas, compatível tanto com **LLMs 100% locais (Ollama)** quanto com **Gateways Corporativos e OpenAI**.
+A production-ready starter template for building conversational AI applications with **persistent chat history**, powered by **Chainlit**, **PostgreSQL**, and any **OpenAI-compatible LLM** (local Ollama, OpenAI, LiteLLM, or corporate API gateways).
 
 ---
 
-## ✨ Funcionalidades
+## ✨ Features
 
-- **Provedor de LLM Plugável:** Compatível com qualquer endpoint com especificação OpenAI (`/chat/completions`), incluindo **Ollama local**, **OpenAI oficial**, **LiteLLM**, **vLLM** e **Gateways corporativos (ex: tribunais, empresas)**.
-- **Histórico Persistente (Sidebar):** Suporte completo à barra lateral de conversas passadas usando `SQLAlchemyDataLayer` e PostgreSQL.
-- **Banco de Dados Zero-Config:** `docker-compose.yml` pré-configurado que inicializa o schema do banco automaticamente no primeiro start.
-- **Correção de Persistência Chainlit 2.10+:** O `schema.sql` já inclui a coluna `"autoCollapse"` na tabela `steps`, evitando que o step interno do Chainlit falhe e faça mensagens desaparecerem.
-- **Suporte a PDFs:** Extração automática de texto de arquivos PDF anexados diretamente no chat.
-- **Suporte a Redes Corporativas / Proxies:** Configuração opcional `LLM_VERIFY_SSL=false` para ambientes protegidos com inspeção SSL / proxy corporativo.
-- **Autenticação Local:** Proteção simples por usuário e senha para habilitar a gestão de threads por usuário.
-
----
-
-## 📋 Pré-requisitos
-
-1. **Python 3.10+** instalado.
-2. **Docker e Docker Compose** (ex: Docker Desktop).
-3. **Provedor de LLM:**
-   - **Opção local:** Ollama instalado (ex: `ollama run qwen3-cpre:latest` ou `llama3`).
-   - **Opção remota:** Uma URL base, chave de API e modelo de qualquer servidor compatível com OpenAI.
+- **Pluggable LLM Provider:** Compatible with any endpoint implementing the OpenAI `/chat/completions` specification, including **local Ollama**, **official OpenAI**, **LiteLLM**, **vLLM**, and **corporate/enterprise gateways**.
+- **Persistent Chat History (Sidebar):** Full thread persistence with sidebar navigation powered by Chainlit's `SQLAlchemyDataLayer` and PostgreSQL.
+- **Zero-Config Database:** Pre-configured `docker-compose.yml` that mounts and automatically initializes the database schema on first startup.
+- **Chainlit 2.10+ Persistence Fix:** The included `schema.sql` contains the `"autoCollapse"` column in the `steps` table, resolving the known issue where internal steps fail to persist and assistant responses disappear upon reopening threads.
+- **PDF Document Support:** Automatic text extraction from PDF files uploaded directly in the chat interface.
+- **Corporate Network & Proxy Friendly:** Optional `LLM_VERIFY_SSL=false` toggle to support restricted corporate networks with SSL-inspecting proxies or custom internal CA certificates.
+- **Local Authentication:** Password-based authentication callback to isolate user sessions and manage individual chat histories.
 
 ---
 
-## 🛠️ Instalação e Uso Passo a Passo
+## 📋 Prerequisites
 
-### 1. Clonar o repositório
+1. **Python 3.10+**
+2. **Docker & Docker Compose** (e.g., Docker Desktop)
+3. **LLM Provider:**
+   - **Local:** [Ollama](https://ollama.com/) running a model (e.g., `ollama run qwen3-cpre:latest` or `llama3`).
+   - **Remote:** Any OpenAI-compatible API endpoint, API key, and model name.
+
+---
+
+## 🛠️ Quickstart Guide
+
+### 1. Clone the repository
 ```bash
-git clone <url-do-seu-repositorio>
-cd <pasta-do-projeto>
+git clone https://github.com/reinermaia/chainlit-universal-chat.git
+cd chainlit-universal-chat
 ```
 
-### 2. Configurar as variáveis de ambiente
-Copie o arquivo de exemplo para `.env`:
+### 2. Configure environment variables
+Copy the example environment file:
 ```bash
 cp .env.example .env
 ```
-Gere uma chave secreta para a sessão:
+
+Generate a session secret:
 ```bash
 chainlit create-secret
 ```
-Abra o `.env` e configure:
-- `CHAINLIT_AUTH_SECRET`: cole a chave gerada acima.
-- `CHAINLIT_LOCAL_USER`: seu usuário de login.
-- `CHAINLIT_LOCAL_PASSWORD`: sua senha de login.
-- **Configuração do LLM:**
-  - Para **Ollama local**:
-    ```env
-    LLM_BASE_URL=http://localhost:11434/v1
-    LLM_API_KEY=ollama
-    LLM_MODEL=seu-modelo-aqui
-    ```
-  - Para **Gateway Corporativo / OpenAI**:
-    ```env
-    LLM_BASE_URL=https://seu-gateway-llm.com/v1
-    LLM_API_KEY=sua-chave-aqui
-    LLM_MODEL=seu-modelo-aqui
-    # Se estiver em rede corporativa com proxy SSL:
-    # LLM_VERIFY_SSL=false
-    ```
 
-### 3. Iniciar o PostgreSQL via Docker
+Open `.env` and fill in the values:
+- `CHAINLIT_AUTH_SECRET`: Paste the secret key generated above.
+- `CHAINLIT_LOCAL_USER`: Your desired login username.
+- `CHAINLIT_LOCAL_PASSWORD`: Your desired login password.
+
+#### LLM Configuration Examples
+
+* **For Local Ollama (Default):**
+  ```env
+  LLM_BASE_URL=http://localhost:11434/v1
+  LLM_API_KEY=ollama
+  LLM_MODEL=qwen3-cpre:latest
+  ```
+
+* **For Corporate Gateway or OpenAI:**
+  ```env
+  LLM_BASE_URL=https://your-api-gateway.com/v1
+  LLM_API_KEY=your_api_key_here
+  LLM_MODEL=gpt-5.3-codex
+  # If working behind an SSL-inspecting corporate proxy:
+  # LLM_VERIFY_SSL=false
+  ```
+
+### 3. Start PostgreSQL via Docker
 ```bash
 docker compose up -d
 ```
-*(O banco inicializa na porta `5432` e o schema é carregado automaticamente pelo script em `schema.sql`).*
+*(The container starts on port `5432` and automatically initializes all tables defined in `schema.sql`).*
 
-### 4. Instalar as dependências Python
+### 4. Install Python dependencies
 ```bash
 pip install -r requirements.txt
 ```
 
-### 5. Iniciar a aplicação
+### 5. Run the application
 ```bash
 chainlit run app.py -w
 ```
-Acesse no seu navegador: **`http://localhost:8000`** e faça login com as credenciais configuradas no `.env`.
+
+Open your browser at **`http://localhost:8000`** and log in with the credentials set in your `.env` file.
 
 ---
 
-## 🔍 Resolução do Bug de Histórico do Chainlit
+## 🔍 Chainlit Persistence Troubleshooting Note
 
-Se você já utilizou o Chainlit com `SQLAlchemyDataLayer` e notou que as respostas da IA sumiam ao reabrir uma conversa antiga, isso ocorre porque desde a versão `2.10.0` o Chainlit adicionou o campo `"autoCollapse"` no objeto `Step`, mas a documentação oficial esqueceu de incluir essa coluna no `schema.sql`.
+When using Chainlit with `SQLAlchemyDataLayer` on version `2.10.0` or later, steps may fail to insert if the database schema lacks the `"autoCollapse"` column, causing assistant messages to disappear when reopening threads.
 
-Este repositório resolve isso de ponta a ponta:
-- O `schema.sql` já traz a coluna `"autoCollapse" BOOLEAN` definida.
-- O arquivo `query.sql` contém comandos utilitários para recuperar threads legadas se necessário.
+This repository resolves the issue out of the box:
+- `schema.sql` defines `"autoCollapse" BOOLEAN` in the `steps` table.
+- `query.sql` provides utility queries to repair legacy orphaned threads if migrating from an older schema.
 
 ---
 
-## 📄 Licença
-Distribuído sob a licença MIT. Sinta-se livre para usar e customizar!
+## 📄 License
+
+This project is licensed under the MIT License. Feel free to use, modify, and distribute it!
