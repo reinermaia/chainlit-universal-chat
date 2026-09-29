@@ -1,0 +1,16 @@
+services:
+  postgres:
+    image: postgres:16
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: chainlit
+      POSTGRES_PASSWORD: chainlit
+      POSTGRES_DB: chainlit
+    ports:
+      - "5432:5432"
+    volumes:
+      - chainlit_pg_data:/var/lib/postgresql/data
+      - ./schema.sql:/docker-entrypoint-initdb.d/init.sql:ro
+
+volumes:
+  chainlit_pg_data:

@@ -1,0 +1,28 @@
+# Ambientes virtuais
+.venv/
+venv/
+ENV/
+env/
+
+# Python cache
+__pycache__/
+*.py[cod]
+*$py.class
+*.pyc
+
+# Configurações e Segredos locais
+.env
+
+# Uploads e anexos gerados durante conversas
+.files/
+
+# Logs e históricos locais de teste
+*.log
+logs.txt
+chat_history.jsonl
+
+# IDE e Sistema Operacional
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
