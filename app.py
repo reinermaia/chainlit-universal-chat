@@ -1,4 +1,5 @@
 import os
+import httpx
 import chainlit as cl
 from chainlit.data.sql_alchemy import SQLAlchemyDataLayer
 from chainlit.types import ThreadDict
@@ -28,17 +29,26 @@ def extract_pdf_text(path: str) -> str:
         text = text[:MAX_PDF_CHARS] + "\n[...texto cortado, PDF maior que o limite...]"
     return text
 
-# 1. MUDANÇA PRINCIPAL: Apontamos o cliente para o seu Ollama local
+# --- Configuração do Provedor de LLM (Ollama, OpenAI, LiteLLM, Gateways Corporativos) ---
+# Lê as configurações do .env com fallback padrão para o Ollama local
+LLM_BASE_URL = os.environ.get("LLM_BASE_URL", "http://localhost:11434/v1")
+LLM_API_KEY = os.environ.get("LLM_API_KEY", "ollama")
+LLM_MODEL = os.environ.get("LLM_MODEL", "qwen3-cpre:latest")
+LLM_VERIFY_SSL = os.environ.get("LLM_VERIFY_SSL", "true").lower() not in ("false", "0", "no")
+
+http_client = httpx.AsyncClient(verify=LLM_VERIFY_SSL) if not LLM_VERIFY_SSL else None
+
 client = AsyncOpenAI(
-    base_url="http://localhost:11434/v1",  # URL do servidor local do Ollama
-    api_key="ollama"  # A biblioteca exige uma chave, mas o Ollama local ignora o que estiver escrito aqui
+    base_url=LLM_BASE_URL,
+    api_key=LLM_API_KEY,
+    http_client=http_client,
 )
 
-# llm settings
+# Configurações de inferência do modelo
 settings = {
-    "model": "qwen3-cpre:latest",  # <-- Atualizado para o nome correto
-    "temperature": 0,
-    "max_tokens": 900,
+    "model": LLM_MODEL,
+    "temperature": float(os.environ.get("LLM_TEMPERATURE", "0")),
+    "max_tokens": int(os.environ.get("LLM_MAX_TOKENS", "900")),
     "top_p": 1,
     "frequency_penalty": 0,
     "presence_penalty": 0,

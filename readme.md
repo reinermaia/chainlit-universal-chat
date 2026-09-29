@@ -1,16 +1,17 @@
-# Chainlit Local Chat (PostgreSQL + Ollama) 🚀
+# Chainlit Universal Chat (PostgreSQL + Pluggable LLM) 🚀
 
-Um template completo e pronto para produção para executar um chat com LLM **100% local e privado**, utilizando **Chainlit**, **Ollama** e **PostgreSQL** para persistência total do histórico de conversas.
+Um template completo e pronto para produção para executar um chat com LLM com persistência total do histórico de conversas, compatível tanto com **LLMs 100% locais (Ollama)** quanto com **Gateways Corporativos e OpenAI**.
 
 ---
 
 ## ✨ Funcionalidades
 
-- **100% Local e Privado:** Conectado diretamente ao Ollama local, sem enviar dados para APIs de terceiros.
+- **Provedor de LLM Plugável:** Compatível com qualquer endpoint com especificação OpenAI (`/chat/completions`), incluindo **Ollama local**, **OpenAI oficial**, **LiteLLM**, **vLLM** e **Gateways corporativos (ex: tribunais, empresas)**.
 - **Histórico Persistente (Sidebar):** Suporte completo à barra lateral de conversas passadas usando `SQLAlchemyDataLayer` e PostgreSQL.
 - **Banco de Dados Zero-Config:** `docker-compose.yml` pré-configurado que inicializa o schema do banco automaticamente no primeiro start.
 - **Correção de Persistência Chainlit 2.10+:** O `schema.sql` já inclui a coluna `"autoCollapse"` na tabela `steps`, evitando que o step interno do Chainlit falhe e faça mensagens desaparecerem.
 - **Suporte a PDFs:** Extração automática de texto de arquivos PDF anexados diretamente no chat.
+- **Suporte a Redes Corporativas / Proxies:** Configuração opcional `LLM_VERIFY_SSL=false` para ambientes protegidos com inspeção SSL / proxy corporativo.
 - **Autenticação Local:** Proteção simples por usuário e senha para habilitar a gestão de threads por usuário.
 
 ---
@@ -19,7 +20,9 @@ Um template completo e pronto para produção para executar um chat com LLM **10
 
 1. **Python 3.10+** instalado.
 2. **Docker e Docker Compose** (ex: Docker Desktop).
-3. **Ollama** instalado e rodando com o modelo desejado (ex: `ollama run qwen3-cpre:latest` ou `llama3`).
+3. **Provedor de LLM:**
+   - **Opção local:** Ollama instalado (ex: `ollama run qwen3-cpre:latest` ou `llama3`).
+   - **Opção remota:** Uma URL base, chave de API e modelo de qualquer servidor compatível com OpenAI.
 
 ---
 
@@ -40,10 +43,25 @@ Gere uma chave secreta para a sessão:
 ```bash
 chainlit create-secret
 ```
-Abra o `.env` e preencha:
+Abra o `.env` e configure:
 - `CHAINLIT_AUTH_SECRET`: cole a chave gerada acima.
-- `CHAINLIT_LOCAL_USER`: seu usuário de login (ex: `admin`).
+- `CHAINLIT_LOCAL_USER`: seu usuário de login.
 - `CHAINLIT_LOCAL_PASSWORD`: sua senha de login.
+- **Configuração do LLM:**
+  - Para **Ollama local**:
+    ```env
+    LLM_BASE_URL=http://localhost:11434/v1
+    LLM_API_KEY=ollama
+    LLM_MODEL=seu-modelo-aqui
+    ```
+  - Para **Gateway Corporativo / OpenAI**:
+    ```env
+    LLM_BASE_URL=https://seu-gateway-llm.com/v1
+    LLM_API_KEY=sua-chave-aqui
+    LLM_MODEL=seu-modelo-aqui
+    # Se estiver em rede corporativa com proxy SSL:
+    # LLM_VERIFY_SSL=false
+    ```
 
 ### 3. Iniciar o PostgreSQL via Docker
 ```bash
